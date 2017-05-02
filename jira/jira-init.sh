@@ -13,10 +13,10 @@ then
 # -----------------------------------------------------------------------------
     expect /home/work/_script/jira-install.sh \
     && cd /home/work/_src \
-    && unzip jira7.2_hack.zip \
-    && \cp -r /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/atlassian-extras-3.1.2.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/atlassian-extras-3.1.2.jar.bak \
-    && \cp -r /home/work/_src/jira7.2/atlassian-extras-3.1.2.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib \
-    && \cp -r /home/work/_src/jira7.2/mysql-connector-java-5.1.39-bin.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib \
+    && unzip jira7.3_hack.zip \
+    && \cp -r /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/atlassian-extras-3.2.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib/atlassian-extras-3.2.jar.bak \
+    && \cp -r /home/work/_src/jira7.3/atlassian-extras-3.2.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib \
+    && \cp -r /home/work/_src/jira7.3/mysql-connector-java-5.1.39-bin.jar /opt/atlassian/jira/atlassian-jira/WEB-INF/lib \
     && service jira stop \
     && service jira start
 else

@@ -41,15 +41,15 @@ RUN axel -n 10 -o /home/work/_src/ https://cdn.azul.com/zulu/bin/zulu8.19.0.1-jd
 # -----------------------------------------------------------------------------
 # 加入破解文件
 # -----------------------------------------------------------------------------
-ADD jira7.2_hack.zip /home/work/_src
+ADD jira7.3_hack.zip /home/work/_src
 
 
 # -----------------------------------------------------------------------------
 # 下载jira
 # -----------------------------------------------------------------------------
-RUN axel -n 10 -o /home/work/_src/ https://downloads.atlassian.com/software/jira/downloads/atlassian-jira-software-7.2.7-x64.bin \
+RUN axel -n 10 -o /home/work/_src/ https://downloads.atlassian.com/software/jira/downloads/atlassian-jira-software-7.3.6-x64.bin \
     && cd /home/work/_src \
-    && chmod 755 atlassian-jira-software-7.2.7-x64.bin \
+    && chmod 755 atlassian-jira-software-7.3.6-x64.bin \
     \
 # -----------------------------------------------------------------------------
 # 删除多余文件
