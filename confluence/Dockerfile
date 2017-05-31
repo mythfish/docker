@@ -19,7 +19,7 @@ ENV MYSQL_DRIVER_DOWNLOAD_URL http://dev.mysql.com/get/Downloads/Connector-J/mys
 ENV RUN_USER            daemon
 ENV RUN_GROUP           daemon
 
-ADD confluence6.2.0_hack.zip /tmp
+ADD confluence6.2.0_hack.zip ./
 
 # Install Atlassian Confluence and helper tools and setup initial home
 # directory structure.
@@ -42,10 +42,8 @@ RUN set -x \
     && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar.bak \
     && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar.bak \
     && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar.bak \
-    && push /tmp    \
     && unzip confluence6.2.0_hack.zip   \
-    && \cp -r /tmp/confluence6.2.0/atlassian-extras-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib \
-    && pop  \
+    && \cp -r ./confluence6.2.0/atlassian-extras-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib \
     && chmod -R 700                       "${CONFLUENCE_INSTALL}/conf" \
     && chmod -R 700                       "${CONFLUENCE_INSTALL}/temp" \
     && chmod -R 700                       "${CONFLUENCE_INSTALL}/logs" \
