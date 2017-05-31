@@ -30,7 +30,6 @@ RUN set -x \
     && apt-get clean \
     && wget -nv -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 \
     && chmod +x /usr/local/bin/dumb-init \
-    && mkdir -p                           "${CONFLUENCE_INSTALL}" \
     && mkdir -p                           "${CONFLUENCE_HOME}" \
     && chmod -R 700                       "${CONFLUENCE_HOME}" \
     && chown ${RUN_USER}:${RUN_GROUP}     "${CONFLUENCE_HOME}" \
