@@ -14,7 +14,12 @@ then
     expect /home/work/_script/confluence-install.sh \
     && cd /home/work/_src \
     && unzip confluence6.2.0_hack.zip \
-    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-api-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-api-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-common-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-common-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-core-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-core-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar.bak \
+    && \cp -r /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar.bak \
     && \cp -r /home/work/_src/confluence6.2.0/atlassian-extras-3.2.jar /opt/atlassian/confluence/confluence/WEB-INF/lib \
     && \cp -r /home/work/_src/confluence6.2.0/mysql-connector-java-5.1.39-bin.jar /opt/atlassian/confluence/confluence/WEB-INF/lib \
     && service confluence stop \

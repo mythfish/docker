@@ -13,7 +13,7 @@ spawn /home/work/_src/atlassian-confluence-6.2.0-x64.bin
 
 expect {
     "o, Enter" { send "o\r";exp_continue}
-    "use default settings" { send "1\r";exp_continue }
+    "2, Enter" { send "1\r";exp_continue }
     "i, Enter" { send "i\r";exp_continue }
     "y, Enter" { send "y\r" }
 }
