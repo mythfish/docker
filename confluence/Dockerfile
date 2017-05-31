@@ -1,87 +1,88 @@
-FROM idoall/supervisor:1.9
-MAINTAINER lion <lion.net@163.com>
+FROM java:openjdk-8-jre
+MAINTAINER Atlassian Confluence
 
+# Setup useful environment variables
+ENV CONFLUENCE_HOME     /var/atlassian/application-data/confluence
+ENV CONFLUENCE_INSTALL  /opt/atlassian/confluence
+ENV CONF_VERSION 6.2.0
 
+LABEL Description="This image is used to start Atlassian Confluence" Vendor="Atlassian" Version="${CONF_VERSION}"
 
-# -----------------------------------------------------------------------------
-# 安装 expect 工具
-# -----------------------------------------------------------------------------
-RUN yum makecache \
-    && yum install -y tcl expect
+ENV CONFLUENCE_DOWNLOAD_URL http://www.atlassian.com/software/confluence/downloads/binary/atlassian-confluence-${CONF_VERSION}.tar.gz
 
-# -----------------------------------------------------------------------------
-# 安装java8环境
-# -----------------------------------------------------------------------------
-RUN axel -n 10 -o /home/work/_src/ https://cdn.azul.com/zulu/bin/zulu8.19.0.1-jdk8.0.112-linux_x64.tar.gz \
-    && cd /home/work/_src \
-    && mkdir -p /usr/lib/jvm/jdk8 \
-    && tar zxvf zulu8.19.0.1-jdk8.0.112-linux_x64.tar.gz \
-    && mv zulu8.19.0.1-jdk8.0.112-linux_x64/* /usr/lib/jvm/jdk8 \
-#    && wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.tar.gz \
-#    && mkdir -p /usr/lib/jvm/jdk8 \
-#    && tar zxvf jdk-8u111-linux-x64.tar.gz -C /usr/lib/jvm/jdk8 \
-    \
-# -----------------------------------------------------------------------------
-#   配置root用户的环境变量
-# -----------------------------------------------------------------------------
-    && echo "export JAVA_HOME=/usr/lib/jvm/jdk8" >>  ~/.bashrc \        
-    && echo "export JRE_HOME=\$JAVA_HOME/jre" >>  ~/.bashrc \
-    && echo "export CLASSPATH=.:\$JAVA_HOME/lib:\$JRE_HOME/lib" >>  ~/.bashrc \
-    && echo "PATH=\$JAVA_HOME/bin:\$PATH" >>  ~/.bashrc \
-    \
-# -----------------------------------------------------------------------------
-#   配置ssh登录后的环境变量
-# -----------------------------------------------------------------------------
-    && echo "export JAVA_HOME=/usr/lib/jvm/jdk8" >>  /etc/profile \
-    && echo "export JRE_HOME=\$JAVA_HOME/jre" >>  /etc/profile \
-    && echo "export CLASSPATH=.::\$JRE_HOME/lib" >>  /etc/profile \
-    && echo "PATH=\$JAVA_HOME/bin:\$PATH" >>  /etc/profile
+ENV MYSQL_VERSION 5.1.38
+ENV MYSQL_DRIVER_DOWNLOAD_URL http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-${MYSQL_VERSION}.tar.gz
 
+# Use the default unprivileged account. This could be considered bad practice
+# on systems where multiple processes end up being executed by 'daemon' but
+# here we only ever run one process anyway.
+ENV RUN_USER            daemon
+ENV RUN_GROUP           daemon
 
-# -----------------------------------------------------------------------------
-# 加入破解文件
-# -----------------------------------------------------------------------------
-ADD confluence6.2.0_hack.zip /home/work/_src
+ADD confluence6.2.0_hack.zip /tmp
 
+# Install Atlassian Confluence and helper tools and setup initial home
+# directory structure.
+# dumb-init is used to give proper signal handling to the app inside Docker
+RUN set -x \
+    && apt-get update --quiet \
+    && apt-get install --quiet --yes --no-install-recommends libtcnative-1 xmlstarlet \
+    && apt-get clean \
+    && wget -nv -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 \
+    && chmod +x /usr/local/bin/dumb-init \
+    && mkdir -p                           "${CONFLUENCE_HOME}" \
+    && chmod -R 700                       "${CONFLUENCE_HOME}" \
+    && chown ${RUN_USER}:${RUN_GROUP}     "${CONFLUENCE_HOME}" \
+    && mkdir -p                           "${CONFLUENCE_INSTALL}/conf" \
+    && curl -Ls                           "${CONFLUENCE_DOWNLOAD_URL}" | tar -xz --directory "${CONFLUENCE_INSTALL}" --strip-components=1 --no-same-owner \
+    && curl -Ls                           "${MYSQL_DRIVER_DOWNLOAD_URL}" | tar -xz --directory "${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib" --strip-components=1 --no-same-owner "mysql-connector-java-${MYSQL_VERSION}/mysql-connector-java-${MYSQL_VERSION}-bin.jar" \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-api-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-api-3.2.jar.bak \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-common-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-common-3.2.jar.bak \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-core-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-core-3.2.jar.bak \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-api-3.2.jar.bak \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-decoder-v2-3.2.jar.bak \
+    && \cp -r ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib/atlassian-extras-legacy-3.2.jar.bak \
+    && push /tmp    \
+    && unzip confluence6.2.0_hack.zip   \
+    && \cp -r /tmp/confluence6.2.0/atlassian-extras-3.2.jar ${CONFLUENCE_INSTALL}/confluence/WEB-INF/lib \
+    && pop  \
+    && chmod -R 700                       "${CONFLUENCE_INSTALL}/conf" \
+    && chmod -R 700                       "${CONFLUENCE_INSTALL}/temp" \
+    && chmod -R 700                       "${CONFLUENCE_INSTALL}/logs" \
+    && chmod -R 700                       "${CONFLUENCE_INSTALL}/work" \
+    && chown -R ${RUN_USER}:${RUN_GROUP}  "${CONFLUENCE_INSTALL}/conf" \
+    && chown -R ${RUN_USER}:${RUN_GROUP}  "${CONFLUENCE_INSTALL}/temp" \
+    && chown -R ${RUN_USER}:${RUN_GROUP}  "${CONFLUENCE_INSTALL}/logs" \
+    && chown -R ${RUN_USER}:${RUN_GROUP}  "${CONFLUENCE_INSTALL}/work" \
+    && echo -e                            "\nconfluence.home=${CONFLUENCE_HOME}" >> "${CONFLUENCE_INSTALL}/confluence/WEB-INF/classes/confluence-init.properties" \
+    && xmlstarlet                         ed --inplace \
+        --delete                          "Server/@debug" \
+        --delete                          "Server/Service/Connector/@debug" \
+        --delete                          "Server/Service/Connector/@useURIValidationHack" \
+        --delete                          "Server/Service/Connector/@minProcessors" \
+        --delete                          "Server/Service/Connector/@maxProcessors" \
+        --delete                          "Server/Service/Engine/@debug" \
+        --delete                          "Server/Service/Engine/Host/@debug" \
+        --delete                          "Server/Service/Engine/Host/Context/@debug" \
+                                          "${CONFLUENCE_INSTALL}/conf/server.xml" \
+    && touch -d "@0"                      "${CONFLUENCE_INSTALL}/conf/server.xml"
 
-# -----------------------------------------------------------------------------
-# 下载confluence
-# -----------------------------------------------------------------------------
-RUN axel -n 10 -o /home/work/_src/ https://downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-6.2.0-x64.bin \
-    && cd /home/work/_src \
-    && chmod 755 atlassian-confluence-6.2.0-x64.bin \
-    \
-# -----------------------------------------------------------------------------
-# 删除多余文件
-# -----------------------------------------------------------------------------
-    && rm -rf /home/work/_src/zulu* \
-    && yum clean all
+# Use the default unprivileged account. This could be considered bad practice
+# on systems where multiple processes end up being executed by 'daemon' but
+# here we only ever run one process anyway.
+USER ${RUN_USER}:${RUN_GROUP}
 
-# -----------------------------------------------------------------------------
-# 复制启动命令
-# -----------------------------------------------------------------------------
-COPY confluence-install.sh /home/work/_script/confluence-install.sh
-COPY confluence-init.sh /home/work/_script/confluence-init.sh
-RUN chmod 777 /home/work/_script/confluence-init.sh
+# Expose default HTTP connector port.
+EXPOSE 8090
+EXPOSE 8091
 
-# -----------------------------------------------------------------------------
-# 通过 supervisor 启动 confluence
-# -----------------------------------------------------------------------------
-ADD _app/supervisord/conf.d/confluence.ini /home/work/_app/supervisord/conf.d/confluence.ini
+# Set volume mount points for installation and home directory. Changes to the
+# home directory needs to be persisted as well as parts of the installation
+# directory due to eg. logs.
+VOLUME ["${CONFLUENCE_INSTALL}", "${CONFLUENCE_HOME}"]
 
+# Set the default working directory as the Confluence installation directory.
+WORKDIR ${CONFLUENCE_INSTALL}
 
-# Define data volumes
-VOLUME ["/opt/atlassian", "/var/atlassian"]
-
-
-# -----------------------------------------------------------------------------
-# 映射端口
-# -----------------------------------------------------------------------------
-EXPOSE 8080 8085 8443 8090
-
-# -----------------------------------------------------------------------------
-# 添加执行文件
-# -----------------------------------------------------------------------------
-ADD run.sh /
-RUN chmod +x /run.sh
-CMD ["/run.sh"]
+# Run Atlassian Confluence as a foreground process by default.
+CMD ["/usr/local/bin/dumb-init", "./bin/catalina.sh", "run"]
