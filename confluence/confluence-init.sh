@@ -44,7 +44,9 @@ else
 # -----------------------------------------------------------------------------
 # 停止服务，并重新启动
 # -----------------------------------------------------------------------------
-    cd /opt/atlassian/confluence/bin/
-    ./stop-confluence.sh
-    ./start-confluence.sh
+    # cd /opt/atlassian/confluence/bin/
+    # ./stop-confluence.sh
+    # ./start-confluence.sh
+    service confluence stop \
+    && service confluence start
 fi
